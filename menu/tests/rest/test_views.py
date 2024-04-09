@@ -1,47 +1,71 @@
-from django.test import TestCase
-from rest_framework.test import APIClient
-from django.urls import reverse
-from menu.application.views import dish_list
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "menu.settings")
+
+import django
+django.setup()
 import json
-from menu.domain.entities.dish import Dish
-from menu.application.serializer import DishSerializer
+from django.test import TestCase
+from rest_framework.test import APIRequestFactory
+from application.views import DishView
 
-class DishListViewTestCase(TestCase):
+class DishViewTestCase(TestCase):
     def setUp(self):
-        self.dish1 = Dish.objects.create(name='Dish 1', description='Description 1', price=10.99)
-        self.dish2 = Dish.objects.create(name='Dish 2', description='Description 2', price=15.99)
-        
-        self.client = APIClient()
+        self.factory = APIRequestFactory()
 
-    def test_dish_list_view(self):
-        # Create a mock request
-        # request = self.factory.get('/dishes/')
-
-        # Mock repository with test data
-        # test_dishes = [
-        #     {'id': 1, 'name': 'pizza', 'description': 'italy', 'price': 10.99},
-        #     {'id': 2, 'name': 'burger', 'description': 'american', 'price': 7.99},
-        #     {'id': 3, 'name': 'spaghetti', 'description': 'italy', 'price': 5.99},
-        #     {'id': 4, 'name': 'fries', 'description': 'american', 'price': 1.99}
-        # ]
-
-        # # Call the view function
-        # response = dish_list(request)
-
-        # # Check response status code
-        # self.assertEqual(response.status_code, 200)
-
-        # # Check response content
-        # expected_content = json.dumps(test_dishes)
-        # self.assertEqual(response.content.decode('utf-8'), expected_content)
-        ################################################################
-        url = reverse('dish-list')
-        response = self.client.get(url)
+    def test_get_all_dishes(self):
+        request = self.factory.get('/dishes/')
+        view = DishView.as_view()
+        response = view(request)
         
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 4) 
+
+    def test_get_single_dish(self):
+        request = self.factory.get('/dishes/1/')
+        view = DishView.as_view()
+        response = view(request, pk=1)
         
-        # Compare the serialized data with the response data
-        expected_data = DishSerializer([self.dish1, self.dish2], many=True).data
-        self.assertEqual(response.data, expected_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.data[0], dict)
+        self.assertEqual(response.data[0]['id'], 1)
+        self.assertEqual(response.data[0]['name'], 'pizza')
 
+    def test_post_dish(self):
+        request_data = {
+            "id":5,
+            "name": "sushi",
+            "description": "japanese",
+            "price": 12.99
+        }
+        request = self.factory.post('/dishes/', data=json.dumps(request_data), content_type='application/json')
+        view = DishView.as_view()
+        response = view(request)
+        
+        print(response.data)
 
+        self.assertEqual(response.status_code, 201)  
+        self.assertEqual(response.data[4]['name'], 'sushi')
+        self.assertEqual(response.data[4]['description'], 'japanese')
+        self.assertEqual(response.data[4]['price'], 12.99)
+
+    def test_delete_dish(self):
+        request = self.factory.delete('/dishes/5/')
+        view = DishView.as_view()
+        response = view(request, pk=5)
+        
+        self.assertEqual(response.status_code, 204)  
+
+    def test_put_dish(self):
+        request_data = {
+            "id":1,
+            "name": "updated dish",
+            "description": "updated description",
+            "price": 15.99
+        }
+        request = self.factory.put('/dishes/', data=json.dumps(request_data), content_type='application/json')
+        view = DishView.as_view()
+        response = view(request)
+        
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data[0]['name'], 'updated dish')
+        self.assertEqual(response.data[0]['price'], 15.99)
