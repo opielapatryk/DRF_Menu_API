@@ -82,6 +82,6 @@ class DishView(APIView):
             
             if dish:
                 serializer = DishSerializer(dish, many=True).data
-                return Response(serializer)
+                return Response(serializer, status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response({"message": "Dish not found"}, status=status.HTTP_404_NOT_FOUND)
