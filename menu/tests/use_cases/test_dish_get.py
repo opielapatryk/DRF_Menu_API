@@ -1,6 +1,6 @@
-from domain.use_cases.dish_list_use_case import dish_list_use_case
 import pytest
 from domain.entities.dish import Dish
+from domain.use_cases.dish_get_use_case import dish_get_use_case
 from unittest import mock
 
 @pytest.fixture
@@ -32,11 +32,13 @@ def domain_dishes():
 
     return [dish_1, dish_2, dish_3, dish_4]
 
-def test_dish_list(domain_dishes):
+
+
+def test_get_dish(domain_dishes):
     repo = mock.Mock()
-    repo.list.return_value = domain_dishes
+    repo.get.return_value = domain_dishes[0]
 
-    result = dish_list_use_case(repo)
+    result = dish_get_use_case(repo, 1)
 
-    repo.list.assert_called_with()
-    assert result == domain_dishes
+    repo.get.assert_called_with(1)
+    assert result == domain_dishes[0]
