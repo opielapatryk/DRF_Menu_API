@@ -1,4 +1,4 @@
-from domain.dish import Dish
+from menu.domain.entities.dish import Dish
 
 def test_dish():
     dish = Dish(1, "pizza", "pepperoni", 12.99)
