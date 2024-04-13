@@ -1,2 +1,4 @@
 Django
 djangorestframework
+pymongo
+psycopg2-binary
