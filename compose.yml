@@ -2,25 +2,20 @@ version: '3.8'
 
 services:
   db:
-    image: postgres
+    image: mongo:latest
     environment:
-      POSTGRES_DB: 'restaurant'
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'postgres'
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'mongodb'
     ports:
-      - 5432:5432
+      - 27017:27017
     volumes:
-      - pgdata:/data/db
+      - mongodbdata:/data/db
   web:
-    build:
+    build: 
       context: ${PWD}
       dockerfile: Dockerfile
     environment:
-      APPLICATION_DB: 'restaurant'
-      POSTGRES_USER: 'postgres'
-      POSTGRES_HOSTNAME: 'db'
-      POSTGRES_PASSWORD: 'postgres'
-      POSTGRES_PORT: 5432
+      MONGO_PORT: 27017:27017
     ports:
       - "8000:8000"
     depends_on:
@@ -30,4 +25,4 @@ services:
       - ${PWD}:/opt/code
 
 volumes:
-  pgdata:
+  mongodbdata:

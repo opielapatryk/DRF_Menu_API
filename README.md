@@ -39,3 +39,5 @@ Module: Dish <br>
 - python manage.py runserver<br>
 - docker-compose up<br>
 - docker-compose up --build<br>
+
+### While switching to mongodb, we have to comment DATABASES in settings.py and check if compose.yml contains correct data
