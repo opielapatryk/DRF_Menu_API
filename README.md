@@ -30,3 +30,12 @@ Module: Dish <br>
 - [x] Serialization / Deserialization<br> 
 - [x] Mock Repo Implementation<br>  
 - [x] Apply Tests<br> 
+
+# Useful commands:
+### Testing 
+- pytest <br>
+
+### Build, run, stop
+- python manage.py runserver<br>
+- docker-compose up<br>
+- docker-compose up --build<br>

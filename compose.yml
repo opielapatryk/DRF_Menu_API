@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: 'restaurant'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/data/db
+  web:
+    build:
+      context: ${PWD}
+      dockerfile: Dockerfile
+    environment:
+      APPLICATION_DB: 'restaurant'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_HOSTNAME: 'db'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_PORT: 5432
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: python ./menu/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ${PWD}:/opt/code
+
+volumes:
+  pgdata:

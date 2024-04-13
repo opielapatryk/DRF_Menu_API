@@ -2,6 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from application.serializer import DishSerializer
 from infrastructure.repositories.memrepo import MemRepo
+from infrastructure.repositories.postgrerepo import PostgresRepo
+from infrastructure.repositories.mongorepo import MongoRepo
 from domain.use_cases.dish_list_use_case import dish_list_use_case
 from domain.use_cases.dish_post_use_case import dish_post_use_case
 from domain.use_cases.dish_get_use_case import dish_get_use_case
@@ -36,11 +38,27 @@ dishes = [
     },
 ]
 
+mongo_configuration = {
+    "MONGODB_HOSTNAME": 'db',
+    "MONGODB_PORT": 27017,
+    "MONGODB_USER": 'root',
+    "MONGODB_PASSWORD": 'mongodb',
+    "APPLICATION_DB": 'restaurant',
+}
+
+postgres_configuration = {
+    "POSTGRES_USER": 'postgres',
+    "POSTGRES_PASSWORD": 'postgres',
+    "POSTGRES_HOSTNAME": 'db',
+    "POSTGRES_PORT": 5432,
+    "APPLICATION_DB": 'restaurant',
+}
+
 class DishView(APIView):
     def get(self, request, pk=None):
         if pk is not None:
             dish_id = pk
-            repo = MemRepo(dishes) 
+            repo = PostgresRepo(postgres_configuration)
             dish = dish_get_use_case(repo, dish_id)
             
             if dish:
@@ -49,7 +67,7 @@ class DishView(APIView):
             else:
                 return Response({"message": "Dish not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        repo = MemRepo(dishes) 
+        repo = PostgresRepo(postgres_configuration)
         results = dish_list_use_case(repo)
         serializer = DishSerializer(results, many=True).data
         return Response(serializer)
@@ -57,7 +75,7 @@ class DishView(APIView):
     def post(self, request):
         serializer = DishSerializer(data=request.data)
         if serializer.is_valid():
-            repo = MemRepo(dishes)
+            repo = PostgresRepo(postgres_configuration)
             new_dish_list = dish_post_use_case(repo, serializer.validated_data)
             serializer = DishSerializer(new_dish_list, many=True).data
             return Response(serializer, status=status.HTTP_201_CREATED)
@@ -67,7 +85,7 @@ class DishView(APIView):
     def put(self, request):
         serializer = DishSerializer(data=request.data)
         if serializer.is_valid():
-            repo = MemRepo(dishes)
+            repo = PostgresRepo(postgres_configuration)
             updated_dish_list = dish_put_use_case(repo, serializer.validated_data)
             serializer = DishSerializer(updated_dish_list, many=True).data
             return Response(serializer, status=status.HTTP_201_CREATED)
@@ -77,7 +95,7 @@ class DishView(APIView):
     def delete(self, request, pk=None):
         if pk is not None:
             dish_id = pk
-            repo = MemRepo(dishes) 
+            repo = PostgresRepo(postgres_configuration)
             dish = dish_delete_use_case(repo, dish_id)
             
             if dish:
@@ -85,3 +103,4 @@ class DishView(APIView):
                 return Response(serializer, status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response({"message": "Dish not found"}, status=status.HTTP_404_NOT_FOUND)
+            
