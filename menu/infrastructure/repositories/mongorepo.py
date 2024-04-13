@@ -36,7 +36,7 @@ class MongoRepo:
 
     def post(self,dish):
         self.db.dishes.insert_one(dish)
-        return {'message': 'Dish added successfully', 'dishes': self.list()}
+        return self.list()
 
     def put(self,dish):
         result = self.db.dishes.update_one(
@@ -45,7 +45,7 @@ class MongoRepo:
         )
 
         if result.modified_count > 0:
-            return {'message': 'Dish updated successfully', 'dishes': self.list()}
+            return self.list()
         else:
             return {'error': 'Dish not found or no changes were made'}
         
