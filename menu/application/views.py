@@ -63,7 +63,7 @@ class DishView(APIView):
     def get(self, request, pk=None):
         if pk is not None:
             dish_id = pk
-            repo = MemRepo(dishes)
+            repo = MongoRepo(mongo_configuration)
             dish = dish_get_use_case(repo, dish_id)
             
             if dish:
@@ -72,7 +72,7 @@ class DishView(APIView):
             else:
                 return Response({"message": "Dish not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        repo = MemRepo(dishes)
+        repo = MongoRepo(mongo_configuration)
         results = dish_list_use_case(repo)
         serializer = DishSerializer(results, many=True).data
         return Response(serializer)
@@ -80,7 +80,7 @@ class DishView(APIView):
     def post(self, request):
         serializer = DishSerializer(data=request.data)
         if serializer.is_valid():
-            repo = MemRepo(dishes)
+            repo = MongoRepo(mongo_configuration)
             new_dish_data = serializer.validated_data
             new_dish = dish_post_use_case(repo, new_dish_data)
             if new_dish:
@@ -97,7 +97,7 @@ class DishView(APIView):
             dish_id = pk
             serializer = DishSerializer(data=request.data, partial=True)
             if serializer.is_valid():
-                repo = MemRepo(dishes)
+                repo = MongoRepo(mongo_configuration)
                 updated_dish_list = dish_patch_use_case(repo, serializer.validated_data,dish_id)
                 serializer = DishSerializer(updated_dish_list, many=True).data
                 if serializer:
@@ -110,7 +110,7 @@ class DishView(APIView):
     def put(self, request):
         serializer = DishSerializer(data=request.data)
         if serializer.is_valid():
-            repo = MemRepo(dishes)
+            repo = MongoRepo(mongo_configuration)
             updated_dish_list = dish_put_use_case(repo, serializer.validated_data)
             serializer = DishSerializer(updated_dish_list, many=True).data
             if serializer:
@@ -123,7 +123,7 @@ class DishView(APIView):
     def delete(self, request, pk=None):
         if pk is not None:
             dish_id = pk
-            repo = MemRepo(dishes)
+            repo = MongoRepo(mongo_configuration)
             dish = dish_delete_use_case(repo, dish_id)
             
             if dish:
