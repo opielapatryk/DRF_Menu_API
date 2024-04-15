@@ -38,18 +38,20 @@ class PostgresRepo:
     def get(self, id):
         query = "select id,name,description,price from dishes where dishes.id = {}".format(id)
         results = self.execute_query(query)
-        return self._create_dish_object(results)
+        if results:
+            return self._create_dish_object(results)[0]
     
     def post(self, dish):
         query = """WITH inserted_dish AS (
-    INSERT INTO dishes(id, name, description, price) 
-    VALUES ({}, '{}', '{}', {})
-    RETURNING id, name, description, price
-)
-SELECT id, name, description, price FROM inserted_dish;
-""".format(dish['id'], dish['name'], dish['description'], dish['price'])
+            INSERT INTO dishes(id, name, description, price) 
+            VALUES ({}, '{}', '{}', {})
+            RETURNING id, name, description, price
+        )
+        SELECT id, name, description, price FROM inserted_dish;
+        """.format(dish['id'], dish['name'], dish['description'], dish['price'])
         results = self.execute_query(query)
-        return self._create_dish_object(results)
+        if results:
+            return self._create_dish_object(results)
     
     def put(self, updated_dish):
         query = """WITH updated_dish AS (
@@ -64,18 +66,45 @@ SELECT id, name, description, price FROM inserted_dish;
         results = self.execute_query(query)
         return self._create_dish_object(results)
 
+    def patch(self, updated_dish,dish_id):
+        price = updated_dish.get('price')
+        if price == None:
+            price = 'Null'
+
+        query = """WITH updated_dish AS (
+            UPDATE dishes 
+            SET name = COALESCE('{name}', name),
+                description = COALESCE('{description}', description),
+                price = COALESCE({price}, price)
+            WHERE id = {id}
+            RETURNING id, name, description, price
+        )
+        SELECT id, name, description, price FROM updated_dish;
+        """.format(
+            id=dish_id,
+            name=updated_dish.get('name'),
+            description=updated_dish.get('description'),
+            price=price
+        )
+        
+        results = self.execute_query(query)
+        return self._create_dish_object(results)
 
 
     
     def delete(self, dish_id):
-        query = """WITH deleted_dish AS (
-            DELETE FROM dishes 
-            WHERE id = {}
-            RETURNING id, name, description, price
-        )
-        SELECT * FROM dishes;
-        """.format(dish_id)
-        
-        results = self.execute_query(query)
-        return self._create_dish_object(results)
+        check_query = "SELECT id FROM dishes WHERE id = {}".format(dish_id)
+        check_result = self.execute_query(check_query)
+
+        if check_result:
+            query = """WITH deleted_dish AS (
+                DELETE FROM dishes 
+                WHERE id = {}
+                RETURNING id, name, description, price
+            )
+            SELECT * FROM dishes WHERE id NOT IN (SELECT id FROM deleted_dish);
+            """.format(dish_id)
+            
+            results = self.execute_query(query)
+            return self._create_dish_object(results)
     

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'mongodb'
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodbdata:/data/db
+  web:
+    build: 
+      context: ${PWD}
+      dockerfile: Dockerfile
+    environment:
+      MONGO_PORT: 27017:27017
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: python ./menu/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ${PWD}:/opt/code
+
+volumes:
+  mongodbdata:
