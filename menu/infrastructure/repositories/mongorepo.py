@@ -64,4 +64,3 @@ class MongoRepo:
         if self.db.dishes.find_one({"id": dish_id}):
             self.db.dishes.delete_one({"id": dish_id})
             return self.list()
-    
