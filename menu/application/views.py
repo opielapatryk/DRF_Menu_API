@@ -75,7 +75,34 @@ class DishView(APIView):
         repo = PostgresRepo(postgres_configuration)
         results = dish_list_use_case(repo)
         serializer = DishSerializer(results, many=True).data
-        return Response(serializer)
+
+        # Filtering options
+        description = request.query_params.get('description')
+        min_price = float(request.query_params.get('min_price', 0))
+        max_price = float(request.query_params.get('max_price', float('inf')))
+
+        # Apply filters
+        filtered_dishes = filter(lambda p: p['price'] >= min_price and p['price'] <= max_price, serializer)
+
+        if description:
+            filtered_dishes = filter(lambda p: p['description'] == description, filtered_dishes)
+
+
+        # Sorting parameters
+        sort_by = request.query_params.get('sort_by', 'id')
+        sort_order = request.query_params.get('sort_order', 'asc')
+        sorted_dishes = sorted(filtered_dishes, key=lambda p: p[sort_by], reverse=sort_order.lower() == 'desc')
+
+        # Pagination parameters
+        page = int(request.query_params.get('page', 1))
+        per_page = int(request.query_params.get('per_page', 10))
+
+        # Paginate the results
+        start_index = (page - 1) * per_page
+        end_index = start_index + per_page
+        paginated_dishes = sorted_dishes[start_index:end_index]
+
+        return Response(paginated_dishes)
     
     def post(self, request):
         serializer = DishSerializer(data=request.data)
